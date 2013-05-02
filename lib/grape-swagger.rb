@@ -66,7 +66,8 @@ module Grape
               end
 
               routes_array = routes.keys.map do |local_route|
-                  { :path => "#{parse_path(route.route_path.gsub('(.:format)', ''),route.route_version)}/#{local_route}.{format}" }
+                  # { :path => "#{parse_path(route.route_path.gsub('(.:format)', ''),route.route_version)}/#{local_route}.{format}" }
+                  { :path => "#{parse_path(route.route_path.gsub('(.:format)', ''),route.route_version)}/#{local_route}" }
               end
               {
                 apiVersion: api_version,
@@ -123,7 +124,9 @@ module Grape
                   dataType = value.is_a?(Hash) ? value[:type]||'String' : 'String'
                   description = value.is_a?(Hash) ? value[:desc] : ''
                   required = value.is_a?(Hash) ? !!value[:required] : false
-                  paramType = path.match(":#{param}") ? 'path' : (method == 'POST') ? 'body' : 'query'
+                  # paramType = path.match(":#{param}") ? 'path' : (method == 'POST') ? 'body' : 'query'
+                  # paramType = path.match(":#{param}") ? 'path' : (method == 'POST') ? 'form' : 'query'
+                  paramType = path.match(":#{param}") ? 'path' : (method == 'POST') ? 'form' : 'form'
                   name = (value.is_a?(Hash) && value[:full_name]) || param
                   {
                     paramType: paramType,
@@ -161,7 +164,8 @@ module Grape
 
             def parse_path(path, version)
               # adapt format to swagger format
-              parsed_path = path.gsub('(.:format)', '.{format}')
+              # parsed_path = path.gsub('(.:format)', '.{format}')
+              parsed_path = path.gsub('(.:format)', '')
               # This is attempting to emulate the behavior of
               # Rack::Mount::Strexp. We cannot use Strexp directly because
               # all it does is generate regular expressions for parsing URLs.

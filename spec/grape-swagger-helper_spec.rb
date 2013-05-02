@@ -25,8 +25,8 @@ describe "helpers" do
       method = "GET"
       @api.parse_params(params, path, method).should ==
         [
-          {paramType: "query", name: :name, description:"A name", dataType: "String", required: true},
-          {paramType: "query", name: :level, description:"", dataType: "String", required: false}
+          {paramType: "form", name: :name, description:"A name", dataType: "String", required: true},
+          {paramType: "form", name: :level, description:"", dataType: "String", required: false}
       ]
     end
 
@@ -39,8 +39,8 @@ describe "helpers" do
       method = "POST"
       @api.parse_params(params, path, method).should ==
         [
-          {paramType: "body", name: :name, description:"A name", dataType: "String", required: true},
-          {paramType: "body", name: :level, description:"", dataType: "String", required: false}
+          {paramType: "form", name: :name, description:"A name", dataType: "String", required: true},
+          {paramType: "form", name: :level, description:"", dataType: "String", required: false}
       ]
     end
   end
@@ -48,30 +48,30 @@ describe "helpers" do
   context "parsing the path" do
     it "should parse the path" do
       path = ":abc/def(.:format)"
-      @api.parse_path(path, nil).should == "{abc}/def.{format}"
+      @api.parse_path(path, nil).should == "{abc}/def"
     end
 
     it "should parse a path that has vars with underscores in the name" do
       path = "abc/:def_g(.:format)"
-      @api.parse_path(path, nil).should == "abc/{def_g}.{format}"
+      @api.parse_path(path, nil).should == "abc/{def_g}"
 
     end
 
     it "should parse a path that has vars with numbers in the name" do
       path = "abc/:sha1(.:format)"
-      @api.parse_path(path, nil).should == "abc/{sha1}.{format}"
+      @api.parse_path(path, nil).should == "abc/{sha1}"
     end
 
     it "should parse a path that has multiple variables" do
       path1 = "abc/:def/:geh(.:format)"
       path2 = "abc/:def:geh(.:format)"
-      @api.parse_path(path1, nil).should == "abc/{def}/{geh}.{format}"
-      @api.parse_path(path2, nil).should == "abc/{def}{geh}.{format}"
+      @api.parse_path(path1, nil).should == "abc/{def}/{geh}"
+      @api.parse_path(path2, nil).should == "abc/{def}{geh}"
     end
 
     it "should parse the path with a specified version" do
       path = ":abc/{version}/def(.:format)"
-      @api.parse_path(path, 'v1').should == "{abc}/v1/def.{format}"
+      @api.parse_path(path, 'v1').should == "{abc}/v1/def"
     end
   end
 
