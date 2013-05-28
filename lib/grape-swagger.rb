@@ -121,20 +121,29 @@ module Grape
                 params.map do |param, value|
                   value[:type] = 'file' if value.is_a?(Hash) && value[:type] == 'Rack::Multipart::UploadedFile'
 
-                  dataType = value.is_a?(Hash) ? value[:type]||'String' : 'String'
+                  dataType = value.is_a?(Hash) ? value[:type] || 'String' : 'String'
                   description = value.is_a?(Hash) ? value[:desc] : ''
                   required = value.is_a?(Hash) ? !!value[:required] : false
                   # paramType = path.match(":#{param}") ? 'path' : (method == 'POST') ? 'body' : 'query'
                   # paramType = path.match(":#{param}") ? 'path' : (method == 'POST') ? 'form' : 'query'
                   paramType = path.match(":#{param}") ? 'path' : (method == 'POST') ? 'form' : 'form'
                   name = (value.is_a?(Hash) && value[:full_name]) || param
-                  {
+                  spec = {
                     paramType: paramType,
                     name: name,
                     description: description,
                     dataType: dataType,
                     required: required
                   }
+                  if value.is_a?(Hash) && value[:allowable_values]
+										allowable_values = value[:allowable_values]
+										if allowable_values.is_a?(Array)
+											spec[:allowableValues] = { valueType: 'LIST', values: allowable_values }
+										elsif allowable_values.is_a?(Range)
+											spec[:allowableValues] = { valueType: 'RANGE', min: allowable_values.min, max: allowable_values.max }
+										end
+                  end
+									spec
                 end
               else
                 []
@@ -149,7 +158,7 @@ module Grape
                   description = value.is_a?(Hash) ? value[:description] : ''
                   required = value.is_a?(Hash) ? !!value[:required] : false
                   paramType = "header"
-                  {
+                  param = {
                     paramType: paramType,
                     name: param,
                     description: description,

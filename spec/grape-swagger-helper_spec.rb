@@ -43,6 +43,34 @@ describe "helpers" do
           {paramType: "form", name: :level, description:"", dataType: "String", required: false}
       ]
     end
+
+	  it "should handle allowable list values" do
+		  params = {
+			  name: {type: 'String', :desc =>"A name", required: true, allowable_values: [ 'a', 'b', 'c'] },
+			  level: 'max'
+		  }
+		  path = "/coolness"
+		  method = "POST"
+		  @api.parse_params(params, path, method).should ==
+			  [
+				  {paramType: "form", name: :name, description:"A name", dataType: "String", required: true, allowableValues: { valueType: 'LIST', values: [ 'a', 'b', 'c'] } },
+				  {paramType: "form", name: :level, description:"", dataType: "String", required: false}
+			  ]
+	  end
+
+    it "should handle allowable range values" do
+	    params = {
+		    name: {type: 'String', :desc =>"A name", required: true, allowable_values: 10..20 },
+		    level: 'max'
+	    }
+	    path = "/coolness"
+	    method = "POST"
+	    @api.parse_params(params, path, method).should ==
+		    [
+			    {paramType: "form", name: :name, description:"A name", dataType: "String", required: true, allowableValues: { valueType: 'RANGE', min: 10, max: 20 } },
+			    {paramType: "form", name: :level, description:"", dataType: "String", required: false}
+		    ]
+    end
   end
 
   context "parsing the path" do
