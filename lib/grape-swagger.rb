@@ -88,15 +88,19 @@ module Grape
               routes = @@target_class::combined_routes[params[:name]]
               routes_array = routes.map do |route|
                 notes = route.route_notes && @@markdown ? Kramdown::Document.new(strip_heredoc(route.route_notes)).to_html : route.route_notes
+                response_class = route.route_response_class && @@markdown ? Kramdown::Document.new(strip_heredoc(route.route_response_class)).to_html : route.route_response_class
                 http_codes = parse_http_codes route.route_http_codes
                 operations = {
                     :notes => notes,
+                    :responseClass => response_class,
                     :summary => route.route_description || '',
                     :nickname   => route.route_method + route.route_path.gsub(/[\/:\(\)\.]/,'-'),
                     :httpMethod => route.route_method,
                     :parameters => parse_header_params(route.route_headers) +
                       parse_params(route.route_params, route.route_path, route.route_method)
                 }
+                operations.merge!({:produces => route.route_produces}) unless route.route_produces.nil?
+                operations.merge!({:consumes => route.route_consumes}) unless route.route_consumes.nil?
                 operations.merge!({:errorResponses => http_codes}) unless http_codes.empty?
                 {
                   :path => parse_path(route.route_path, api_version),
@@ -124,8 +128,6 @@ module Grape
                   dataType = value.is_a?(Hash) ? value[:type] || 'String' : 'String'
                   description = value.is_a?(Hash) ? value[:desc] : ''
                   required = value.is_a?(Hash) ? !!value[:required] : false
-                  # paramType = path.match(":#{param}") ? 'path' : (method == 'POST') ? 'body' : 'query'
-                  # paramType = path.match(":#{param}") ? 'path' : (method == 'POST') ? 'form' : 'query'
                   paramType = path.match(":#{param}") ? 'path' : (method == 'POST') ? 'form' : 'form'
                   name = (value.is_a?(Hash) && value[:full_name]) || param
                   spec = {
@@ -135,6 +137,8 @@ module Grape
                     dataType: dataType,
                     required: required
                   }
+                  spec.merge!({ defaultValue: "#{value[:default]}"}) unless !value.is_a?(Hash) && !value[:default].to_s.empty?
+
                   if value.is_a?(Hash) && value[:allowable_values]
 										allowable_values = value[:allowable_values]
 										if allowable_values.is_a?(Array)
